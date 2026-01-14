@@ -7,12 +7,12 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
-    fun init() {
-        val driverClassName = "org.postgresql.Driver"
-        val jdbcURL = "jdbc:postgresql://localhost:5432/stayeasy_db"
-        val user = "postgres"
-        val password = "password" // Debería venir de env vars
-
+    fun init(
+        jdbcURL: String = "jdbc:postgresql://localhost:5432/stayeasy_db",
+        driverClassName: String = "org.postgresql.Driver",
+        user: String = "postgres",
+        password: String = "password"
+    ) {
         val database = Database.connect(createHikariDataSource(jdbcURL, driverClassName, user, password))
         
         transaction(database) {
