@@ -65,4 +65,14 @@ class ReservacionServiceTest {
             service.crearReservacion(nuevaReserva)
         }
     }
+
+    @Test
+    fun `deberia cancelar reserva`() {
+        val id = UUID.randomUUID()
+        every { repository.cancelar(id) } returns Unit
+
+        service.cancelarReservacion(id)
+
+        verify { repository.cancelar(id) }
+    }
 }
