@@ -65,9 +65,10 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
 
     const payload = {
       ...formData,
-      // Formatear a YYYY-MM-DDTHH:mm:ss
-      fechaCheckIn: new Date(formData.fechaCheckIn).toISOString().substring(0, 19),
-      fechaCheckOut: new Date(formData.fechaCheckOut).toISOString().substring(0, 19),
+      // Las fechas de los inputs datetime-local ya están en un formato compatible con el backend (YYYY-MM-DDTHH:mm).
+      // Se eliminan las conversiones a ISOString para evitar problemas de zona horaria.
+      fechaCheckIn: formData.fechaCheckIn,
+      fechaCheckOut: formData.fechaCheckOut,
     };
 
     const response = await reservationService.createReservation(payload);

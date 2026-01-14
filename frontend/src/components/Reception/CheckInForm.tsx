@@ -102,8 +102,8 @@ const CheckInForm: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Detalles de la Reserva</h3>
           <p><strong>ID:</strong> {selectedReservation.id}</p>
           <p><strong>Habitación ID:</strong> {selectedReservation.habitacionId}</p>
-          <p><strong>Check-in:</strong> {new Date(selectedReservation.fechaCheckIn).toLocaleString()}</p>
-          <p><strong>Check-out:</strong> {new Date(selectedReservation.fechaCheckOut).toLocaleString()}</p>
+          <p><strong>Check-in:</strong> {new Date(selectedReservation.fechaCheckIn).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+          <p><strong>Check-out:</strong> {new Date(selectedReservation.fechaCheckOut).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
           <p><strong>Estado:</strong> <span className="font-mono bg-gray-200 px-2 py-1 rounded">{selectedReservation.estado}</span></p>
           
           <button

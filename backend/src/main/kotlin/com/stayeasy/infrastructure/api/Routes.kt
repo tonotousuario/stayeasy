@@ -63,24 +63,26 @@ fun Route.reservacionRoutes(
             }
 
             post {
-                val request = call.receive<ReservacionRequest>()
-                
-                val reservacion = Reservacion(
-                    id = UUID.randomUUID(),
-                    huespedId = UUID.fromString(request.huespedId),
-                    habitacionId = UUID.fromString(request.habitacionId),
-                    fechaCheckIn = LocalDateTime.parse(request.fechaCheckIn),
-                    fechaCheckOut = LocalDateTime.parse(request.fechaCheckOut),
-                    tarifaTotal = request.tarifaTotal,
-                    estado = EstadoReservacion.CONFIRMADA,
-                    numAdultos = request.numAdultos
-                )
-
                 try {
+                    val request = call.receive<ReservacionRequest>()
+                    
+                    val reservacion = Reservacion(
+                        id = UUID.randomUUID(),
+                        huespedId = UUID.fromString(request.huespedId),
+                        habitacionId = UUID.fromString(request.habitacionId),
+                        fechaCheckIn = LocalDateTime.parse(request.fechaCheckIn),
+                        fechaCheckOut = LocalDateTime.parse(request.fechaCheckOut),
+                        tarifaTotal = request.tarifaTotal,
+                        estado = EstadoReservacion.CONFIRMADA,
+                        numAdultos = request.numAdultos
+                    )
+    
                     val creada = reservacionService.crearReservacion(reservacion)
                     call.respond(HttpStatusCode.Created, toResponse(creada))
                 } catch (e: IllegalStateException) {
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to e.message))
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to (e.message ?: "Argumento inválido")))
                 }
             }
         }

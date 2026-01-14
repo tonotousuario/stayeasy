@@ -27,8 +27,14 @@ async function apiCall<T>(
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      return { data: null, error: errorData.message || 'Something went wrong' };
+      try {
+        const errorData = await response.json();
+        // Asumiendo que el backend envía un objeto con una clave 'error' o 'message'
+        return { data: null, error: errorData.error || errorData.message || `Error ${response.status}` };
+      } catch (jsonError) {
+        // Si la respuesta no es JSON o está vacía, manejamos un error genérico
+        return { data: null, error: `Error ${response.status}: ${response.statusText}` };
+      }
     }
 
     const responseData: T = await response.json();

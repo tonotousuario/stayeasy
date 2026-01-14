@@ -125,7 +125,7 @@ const ReservationCalendar: React.FC = () => {
                   <div
                     key={index}
                     className={`border-r border-gray-100 w-16 h-12 flex-shrink-0 relative text-xs ${reservation ? getCellColorClass(reservation.estado) : ''}`}
-                    title={reservation ? `Reserva ID: ${reservation.id}\nEstado: ${reservation.estado}` : ''}
+                    title={reservation ? `Reserva ID: ${reservation.id}\nCheck-in: ${new Date(reservation.fechaCheckIn).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nCheck-out: ${new Date(reservation.fechaCheckOut).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nEstado: ${reservation.estado}` : ''}
                   >
                     {isStart && reservation && (
                       <div className="absolute left-0 top-0 bottom-0 flex items-center pl-1 whitespace-nowrap overflow-visible z-10 font-semibold drop-shadow-md">
