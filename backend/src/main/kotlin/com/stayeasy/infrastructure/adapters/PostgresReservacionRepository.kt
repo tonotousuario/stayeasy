@@ -6,9 +6,9 @@ import com.stayeasy.domain.ports.ReservacionRepository
 import com.stayeasy.infrastructure.persistence.Huespedes
 import com.stayeasy.infrastructure.persistence.Reservaciones
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -57,19 +57,33 @@ class PostgresReservacionRepository : ReservacionRepository {
 
     override fun buscar(query: String): List<Reservacion> {
         return transaction {
-            val lowerCaseQuery = query.lowercase()
-            val isUUID = runCatching { UUID.fromString(query) }.getOrNull()
+            val results = mutableListOf<Reservacion>()
+            val isUUID = runCatching { UUID.fromString(query) }.isSuccess
 
-            Reservaciones.join(Huespedes, JoinType.INNER, onColumn = Reservaciones.huespedId, otherColumn = Huespedes.id)
-                .selectAll()
-                .where {
-                    if (isUUID != null) {
-                        Reservaciones.id eq isUUID
-                    } else {
-                        Huespedes.apellido.lowerCase() like "%$lowerCaseQuery%"
-                    }
+            val statement = if (isUUID) {
+                "SELECT * FROM reservacion WHERE id_reservacion = '$query'"
+            } else {
+                "SELECT r.* FROM reservacion r JOIN huesped h ON r.id_huesped = h.id_huesped WHERE unaccent(h.apellido) ILIKE unaccent('%$query%')"
+            }
+
+            TransactionManager.current().exec(statement) { rs: ResultSet ->
+                while (rs.next()) {
+                    results.add(
+                        Reservacion(
+                            id = UUID.fromString(rs.getString("id_reservacion")),
+                            huespedId = UUID.fromString(rs.getString("id_huesped")),
+                            habitacionId = UUID.fromString(rs.getString("id_habitacion")),
+                            fechaCheckIn = rs.getTimestamp("fecha_check_in").toLocalDateTime(),
+                            fechaCheckOut = rs.getTimestamp("fecha_check_out").toLocalDateTime(),
+                            tarifaTotal = rs.getBigDecimal("tarifa_total").toDouble(),
+                            estado = EstadoReservacion.valueOf(rs.getString("estado")),
+                            numAdultos = rs.getInt("num_adultos"),
+                            fechaCreacion = rs.getTimestamp("fecha_creacion").toLocalDateTime()
+                        )
+                    )
                 }
-                .map { toReservacion(it) }
+            }
+            results
         }
     }
 

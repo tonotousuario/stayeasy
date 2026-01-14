@@ -15,7 +15,7 @@ function App() {
   };
 
   const handleCheckIn = () => {
-    alert('Navegar a Check-in');
+    document.getElementById('check-in-form-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleReservationSuccess = () => {
@@ -54,7 +54,7 @@ function App() {
         <ReservationCalendar />
       </div>
 
-      <div className="mt-8">
+      <div id="check-in-form-section" className="mt-8">
         <CheckInForm />
       </div>
 

@@ -12,6 +12,9 @@ import java.util.UUID
 object DataSeeder {
     fun seed() {
         transaction {
+            // Habilitar la extensión para búsquedas insensibles a acentos
+            exec("CREATE EXTENSION IF NOT EXISTS unaccent;")
+
             // Solo insertar si no hay huéspedes (asumimos DB vacía)
             if (Huespedes.selectAll().count() == 0L) {
                 println("🌱 Sembrando datos de prueba...")
