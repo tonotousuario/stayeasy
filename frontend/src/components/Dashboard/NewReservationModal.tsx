@@ -67,6 +67,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
       ...formData,
       fechaCheckIn: formData.fechaCheckIn,
       fechaCheckOut: formData.fechaCheckOut,
+      estado: 'CONFIRMADA', // Add default state
     };
 
     const response = await reservationService.createReservation(payload);
