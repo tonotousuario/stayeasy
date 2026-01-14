@@ -1,9 +1,16 @@
 package com.stayeasy
 
+import com.stayeasy.domain.model.LocalDateTimeSerializer
+import com.stayeasy.domain.service.HabitacionService
+import com.stayeasy.domain.service.HuespedService
 import com.stayeasy.domain.service.ReservacionService
+import com.stayeasy.infrastructure.adapters.PostgresHabitacionRepository
+import com.stayeasy.infrastructure.adapters.PostgresHuespedRepository
 import com.stayeasy.infrastructure.adapters.PostgresReservacionRepository
 import com.stayeasy.infrastructure.api.reservacionRoutes
+import com.stayeasy.infrastructure.persistence.DataSeeder
 import com.stayeasy.infrastructure.persistence.DatabaseFactory
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -11,12 +18,9 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpHeaders
-import com.stayeasy.domain.service.HabitacionService
-import com.stayeasy.domain.service.HuespedService
-import com.stayeasy.infrastructure.adapters.PostgresHabitacionRepository
-import com.stayeasy.infrastructure.adapters.PostgresHuespedRepository
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -26,6 +30,7 @@ fun main() {
 fun Application.module() {
     // Database
     DatabaseFactory.init()
+    DataSeeder.seed()
 
     // Repositories
     val reservacionRepository = PostgresReservacionRepository()
@@ -33,7 +38,7 @@ fun Application.module() {
     val huespedRepository = PostgresHuespedRepository()
 
     // Services
-    val reservacionService = ReservacionService(reservacionRepository)
+    val reservacionService = ReservacionService(reservacionRepository, habitacionRepository)
     val habitacionService = HabitacionService(habitacionRepository)
     val huespedService = HuespedService(huespedRepository)
 
@@ -45,12 +50,17 @@ fun Application.module() {
         allowMethod(HttpMethod.Patch)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        anyHost() // Don't do this in production if possible. Try to limit it.
+        anyHost()
     }
 
     // JSON
     install(ContentNegotiation) {
-        json()
+        json(Json {
+            serializersModule = SerializersModule {
+                contextual(LocalDateTimeSerializer)
+            }
+            ignoreUnknownKeys = true // Añadido para robustez
+        })
     }
 
     // Routes

@@ -40,6 +40,28 @@ fun Route.reservacionRoutes(
                 call.respond(reservas.map { toResponse(it) })
             }
 
+            get("/buscar") {
+                val query = call.request.queryParameters["q"]
+                if (query.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "El parámetro 'q' es requerido")
+                    return@get
+                }
+                val resultados = reservacionService.buscar(query)
+                call.respond(resultados.map { toResponse(it) })
+            }
+
+            patch("/{id}/check-in") {
+                val id = call.parameters["id"] ?: return@patch call.respond(HttpStatusCode.BadRequest, "ID de reserva no proporcionado")
+                try {
+                    reservacionService.checkIn(UUID.fromString(id))
+                    call.respond(HttpStatusCode.OK, mapOf("message" to "Check-in realizado exitosamente"))
+                } catch (e: NoSuchElementException) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to (e.message ?: "Reserva no encontrada")))
+                } catch (e: IllegalStateException) {
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to (e.message ?: "Error al realizar check-in")))
+                }
+            }
+
             post {
                 val request = call.receive<ReservacionRequest>()
                 

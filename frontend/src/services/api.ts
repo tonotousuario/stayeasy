@@ -52,6 +52,12 @@ export const reservationService = {
   },
   getHuespedes: async (): Promise<ApiResponse<any[]>> => {
     return apiCall('/huespedes');
+  },
+  searchReservations: async (query: string): Promise<ApiResponse<any[]>> => {
+    return apiCall(`/reservas/buscar?q=${query}`);
+  },
+  performCheckIn: async (id: string): Promise<ApiResponse<any>> => {
+    return apiCall(`/reservas/${id}/check-in`, 'PATCH');
   }
 };
 

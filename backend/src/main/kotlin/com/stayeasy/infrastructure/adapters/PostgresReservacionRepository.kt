@@ -3,9 +3,11 @@ package com.stayeasy.infrastructure.adapters
 import com.stayeasy.domain.model.EstadoReservacion
 import com.stayeasy.domain.model.Reservacion
 import com.stayeasy.domain.ports.ReservacionRepository
+import com.stayeasy.infrastructure.persistence.Huespedes
 import com.stayeasy.infrastructure.persistence.Reservaciones
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.UUID
@@ -42,9 +44,7 @@ class PostgresReservacionRepository : ReservacionRepository {
             Reservaciones.selectAll().where {
                 (Reservaciones.habitacionId eq habitacionId) and
                 (Reservaciones.estado neq EstadoReservacion.CANCELADA.name) and
-                (
-                    (Reservaciones.fechaCheckIn less fin) and (Reservaciones.fechaCheckOut greater inicio)
-                )
+                ((Reservaciones.fechaCheckIn less fin) and (Reservaciones.fechaCheckOut greater inicio))
             }.map { toReservacion(it) }
         }
     }
@@ -52,6 +52,32 @@ class PostgresReservacionRepository : ReservacionRepository {
     override fun obtenerTodas(): List<Reservacion> {
         return transaction {
             Reservaciones.selectAll().map { toReservacion(it) }
+        }
+    }
+
+    override fun buscar(query: String): List<Reservacion> {
+        return transaction {
+            val lowerCaseQuery = query.lowercase()
+            val isUUID = runCatching { UUID.fromString(query) }.getOrNull()
+
+            Reservaciones.join(Huespedes, JoinType.INNER, onColumn = Reservaciones.huespedId, otherColumn = Huespedes.id)
+                .selectAll()
+                .where {
+                    if (isUUID != null) {
+                        Reservaciones.id eq isUUID
+                    } else {
+                        Huespedes.apellido.lowerCase() like "%$lowerCaseQuery%"
+                    }
+                }
+                .map { toReservacion(it) }
+        }
+    }
+
+    override fun actualizarEstado(id: UUID, nuevoEstado: EstadoReservacion) {
+        transaction {
+            Reservaciones.update({ Reservaciones.id eq id }) {
+                it[estado] = nuevoEstado.name
+            }
         }
     }
 

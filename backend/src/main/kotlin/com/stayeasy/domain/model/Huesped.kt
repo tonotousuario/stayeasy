@@ -1,8 +1,11 @@
 package com.stayeasy.domain.model
 
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 data class Huesped(
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val nombre: String,
     val apellido: String,

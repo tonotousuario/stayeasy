@@ -65,8 +65,9 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
 
     const payload = {
       ...formData,
-      fechaCheckIn: new Date(formData.fechaCheckIn).toISOString(),
-      fechaCheckOut: new Date(formData.fechaCheckOut).toISOString(),
+      // Formatear a YYYY-MM-DDTHH:mm:ss
+      fechaCheckIn: new Date(formData.fechaCheckIn).toISOString().substring(0, 19),
+      fechaCheckOut: new Date(formData.fechaCheckOut).toISOString().substring(0, 19),
     };
 
     const response = await reservationService.createReservation(payload);
