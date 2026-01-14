@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.2.21"
 }
 
-group = "com.codedestroyers.backend"
+group = "com.stayeasy"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -10,7 +10,24 @@ repositories {
 }
 
 dependencies {
+    val exposedVersion = "0.57.0"
+    val ktorVersion = "3.0.3"
+    
     testImplementation(kotlin("test"))
+    testImplementation("io.mockk:mockk:1.13.10")
+
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("ch.qos.logback:logback-classic:1.5.12")
 }
 
 kotlin {
