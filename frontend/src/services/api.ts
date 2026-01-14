@@ -1,6 +1,6 @@
 // frontend/src/services/api.ts
 
-const API_BASE_URL = 'http://localhost:8080/api'; // Assuming backend runs on 8080
+const API_BASE_URL = 'http://localhost:8080/api/v1'; // Assuming backend runs on 8080
 
 interface ApiResponse<T> {
   data: T | null;
@@ -42,12 +42,17 @@ async function apiCall<T>(
 // Example usage (can be expanded with specific service functions)
 export const reservationService = {
   getReservations: async (): Promise<ApiResponse<any[]>> => {
-    return apiCall('/reservations');
+    return apiCall('/reservas');
   },
   createReservation: async (reservationData: any): Promise<ApiResponse<any>> => {
-    return apiCall('/reservations', 'POST', reservationData);
+    return apiCall('/reservas', 'POST', reservationData);
   },
-  // Add other service methods as needed
+  getHabitaciones: async (): Promise<ApiResponse<any[]>> => {
+    return apiCall('/habitaciones');
+  },
+  getHuespedes: async (): Promise<ApiResponse<any[]>> => {
+    return apiCall('/huespedes');
+  }
 };
 
 export const guestService = {

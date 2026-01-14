@@ -5,6 +5,8 @@ import com.stayeasy.domain.ports.ReservacionRepository
 
 class ReservacionService(private val repository: ReservacionRepository) {
 
+    fun obtenerTodas(): List<Reservacion> = repository.obtenerTodas()
+
     fun crearReservacion(reservacion: Reservacion): Reservacion {
         val solapamientos = repository.buscarPorHabitacionYFechas(
             reservacion.habitacionId,

@@ -1,0 +1,45 @@
+# Compose solo para probar la db
+services:
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: api/Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - ./api/.env
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - app-network
+  #
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: frontend/Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   env_file:
+  #     - ./frontend/.env
+  #   networks:
+  #     - app-network
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stayeasy_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

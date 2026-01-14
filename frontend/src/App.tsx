@@ -1,17 +1,26 @@
+import { useState } from 'react';
 import './App.css';
 import StatsCard from './components/Dashboard/StatsCard';
 import QuickActions from './components/Dashboard/QuickActions';
 import ReservationCalendar from './components/Calendar/ReservationCalendar';
 import CheckInForm from './components/Reception/CheckInForm';
+import NewReservationModal from './components/Dashboard/NewReservationModal';
 import { FaBed, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
 
 function App() {
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+
   const handleNewReservation = () => {
-    alert('Navegar a Nueva Reserva');
+    setIsReservationModalOpen(true);
   };
 
   const handleCheckIn = () => {
     alert('Navegar a Check-in');
+  };
+
+  const handleReservationSuccess = () => {
+    console.log('Reserva creada, actualizar calendario...');
+    // Aquí podrías recargar los datos del calendario si estuviera conectado
   };
 
   return (
@@ -48,6 +57,12 @@ function App() {
       <div className="mt-8">
         <CheckInForm />
       </div>
+
+      <NewReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => setIsReservationModalOpen(false)}
+        onSuccess={handleReservationSuccess}
+      />
     </div>
   );
 }

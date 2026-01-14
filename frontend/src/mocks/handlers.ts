@@ -28,7 +28,7 @@ const dummyReservations: Reservacion[] = [
 ];
 
 export const handlers = [
-  http.get('http://localhost:8080/api/reservations', () => {
+  http.get('http://localhost:8080/api/v1/reservas', () => {
     return HttpResponse.json(dummyReservations);
   }),
 

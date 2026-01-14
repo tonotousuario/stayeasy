@@ -49,6 +49,12 @@ class PostgresReservacionRepository : ReservacionRepository {
         }
     }
 
+    override fun obtenerTodas(): List<Reservacion> {
+        return transaction {
+            Reservaciones.selectAll().map { toReservacion(it) }
+        }
+    }
+
     override fun cancelar(id: UUID) {
         transaction {
             Reservaciones.update({ Reservaciones.id eq id }) {

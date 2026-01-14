@@ -8,5 +8,6 @@ interface ReservacionRepository {
     fun guardar(reservacion: Reservacion): Reservacion
     fun buscarPorId(id: UUID): Reservacion?
     fun buscarPorHabitacionYFechas(habitacionId: UUID, inicio: LocalDateTime, fin: LocalDateTime): List<Reservacion>
+    fun obtenerTodas(): List<Reservacion>
     fun cancelar(id: UUID)
 }

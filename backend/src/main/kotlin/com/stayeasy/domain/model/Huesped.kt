@@ -5,6 +5,7 @@ import java.util.UUID
 data class Huesped(
     val id: UUID,
     val nombre: String,
+    val apellido: String,
     val email: String,
     val identificacion: String
 ) {
