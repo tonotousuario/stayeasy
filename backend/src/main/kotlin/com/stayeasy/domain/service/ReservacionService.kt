@@ -41,4 +41,25 @@ class ReservacionService(
     fun cancelarReservacion(id: java.util.UUID) {
         reservacionRepository.cancelar(id)
     }
+
+    fun checkOut(reservacionId: UUID) {
+        val reservacion = reservacionRepository.buscarPorId(reservacionId)
+            ?: throw NoSuchElementException("No se encontró la reservación con ID $reservacionId")
+
+        // TODO: Backend developer to add logic for generating an invoice upon checkout.
+
+        reservacionRepository.actualizarEstado(reservacionId, EstadoReservacion.CHECK_OUT)
+        habitacionRepository.actualizarEstado(reservacion.habitacionId, EstadoHabitacion.SUCIA)
+    }
+
+    fun modificarReservacion(reservacion: Reservacion): Reservacion? {
+        // TODO: Backend developer to implement full modification logic,
+        // including validation of dates and overlaps.
+        return reservacionRepository.update(reservacion)
+    }
+
+    fun eliminarReservacion(id: UUID): Boolean {
+        // TODO: Backend developer to add any validation before deletion.
+        return reservacionRepository.delete(id)
+    }
 }

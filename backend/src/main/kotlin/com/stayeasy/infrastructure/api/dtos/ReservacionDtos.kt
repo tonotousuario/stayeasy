@@ -9,7 +9,8 @@ data class ReservacionRequest(
     val fechaCheckIn: String,
     val fechaCheckOut: String,
     val numAdultos: Int,
-    val tarifaTotal: Double
+    val tarifaTotal: Double,
+    val estado: String
 )
 
 @Serializable

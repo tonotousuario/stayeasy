@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 enum class EstadoReservacion {
-    CONFIRMADA, CHECK_IN, CANCELADA
+    CONFIRMADA, CHECK_IN, CHECK_OUT, CANCELADA
 }
 
 @Serializable

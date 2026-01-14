@@ -16,7 +16,7 @@ object DatabaseFactory {
         val database = Database.connect(createHikariDataSource(jdbcURL, driverClassName, user, password))
         
         transaction(database) {
-            SchemaUtils.create(Huespedes, TiposHabitacion, Habitaciones, Reservaciones)
+            SchemaUtils.create(Huespedes, TiposHabitacion, Habitaciones, Reservaciones, Users)
         }
     }
 

@@ -13,4 +13,6 @@ interface ReservacionRepository {
     fun buscar(query: String): List<Reservacion>
     fun actualizarEstado(id: UUID, nuevoEstado: EstadoReservacion)
     fun cancelar(id: UUID)
+    fun update(reservacion: Reservacion): Reservacion?
+    fun delete(id: UUID): Boolean
 }

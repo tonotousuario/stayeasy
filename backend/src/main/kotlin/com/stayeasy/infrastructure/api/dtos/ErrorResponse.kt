@@ -1,0 +1,6 @@
+package com.stayeasy.infrastructure.api.dtos
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ErrorResponse(val error: String)

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { reservationService, huespedService, habitacionService } from '../../services/api'; // Corrected imports
+import { reservationService, huespedService, habitacionService } from '../../services/api';
+import type { Reservacion, Huesped, HabitacionResponse } from '../../types/domain.ts';
 
-interface NewReservationModalProps {
+interface EditReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  reservationToEdit: Reservacion | null;
 }
 
-const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const EditReservationModal: React.FC<EditReservationModalProps> = ({ isOpen, onClose, onSuccess, reservationToEdit }) => {
   const [formData, setFormData] = useState({
     huespedId: '',
     habitacionId: '',
@@ -15,27 +17,49 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
     fechaCheckOut: '',
     numAdultos: 1,
     tarifaTotal: 0,
+    estado: ''
   });
   
-  const [huespedes, setHuespedes] = useState<any[]>([]);
-  const [habitaciones, setHabitaciones] = useState<any[]>([]);
+  const [huespedes, setHuespedes] = useState<Huesped[]>([]);
+  const [habitaciones, setHabitaciones] = useState<HabitacionResponse[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar datos al abrir el modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && reservationToEdit) {
       loadData();
+      // Populate form with existing reservation data
+      setFormData({
+        huespedId: reservationToEdit.huespedId,
+        habitacionId: reservationToEdit.habitacionId,
+        fechaCheckIn: reservationToEdit.fechaCheckIn.substring(0, 16), // Format for datetime-local
+        fechaCheckOut: reservationToEdit.fechaCheckOut.substring(0, 16), // Format for datetime-local
+        numAdultos: reservationToEdit.numAdultos,
+        tarifaTotal: reservationToEdit.tarifaTotal,
+        estado: reservationToEdit.estado
+      });
+    } else if (isOpen && !reservationToEdit) {
+        // If modal is open but no reservation to edit (e.g., for new reservation flow, though this modal is for EDIT)
+        // Reset form or handle as appropriate. For now, this is assumed to be an edit modal.
+        setFormData({
+            huespedId: '',
+            habitacionId: '',
+            fechaCheckIn: '',
+            fechaCheckOut: '',
+            numAdultos: 1,
+            tarifaTotal: 0,
+            estado: ''
+        });
     }
-  }, [isOpen]);
+  }, [isOpen, reservationToEdit]);
 
   const loadData = async () => {
     setLoadingData(true);
     try {
       const [huespedesRes, habitacionesRes] = await Promise.all([
-        huespedService.getHuespedes(), // Corrected service call
-        habitacionService.getHabitaciones() // Corrected service call
+        huespedService.getHuespedes(),
+        habitacionService.getHabitaciones()
       ]);
       
       if (huespedesRes.data) setHuespedes(huespedesRes.data);
@@ -63,19 +87,25 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
     setLoadingSubmit(true);
     setError(null);
 
+    if (!reservationToEdit) {
+        setError("No hay reservación para editar.");
+        setLoadingSubmit(false);
+        return;
+    }
+
     const payload = {
       ...formData,
-      fechaCheckIn: formData.fechaCheckIn,
-      fechaCheckOut: formData.fechaCheckOut,
+      fechaCheckIn: formData.fechaCheckIn, // YYYY-MM-DDTHH:mm
+      fechaCheckOut: formData.fechaCheckOut, // YYYY-MM-DDTHH:mm
     };
 
-    const response = await reservationService.createReservation(payload);
+    const response = await reservationService.updateReservation(reservationToEdit.id, payload);
 
     setLoadingSubmit(false);
     if (response.error) {
-      setError('Error al crear reserva: ' + response.error);
+      setError('Error al actualizar reserva: ' + response.error);
     } else {
-      alert('Reserva creada exitosamente!');
+      alert('Reserva actualizada exitosamente!');
       onSuccess();
       onClose();
     }
@@ -84,7 +114,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Nueva Reservación</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">Editar Reservación {reservationToEdit?.id.substring(0, 8)}...</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -157,6 +187,22 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
               </div>
             </div>
 
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Estado</label>
+                <select
+                    name="estado"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                    value={formData.estado}
+                    onChange={handleChange}
+                >
+                    <option value="CONFIRMADA">CONFIRMADA</option>
+                    <option value="CHECK_IN">CHECK_IN</option>
+                    <option value="CANCELADA">CANCELADA</option>
+                    <option value="CHECK_OUT">CHECK_OUT</option> {/* Should be set by checkout action, not manual edit */}
+                </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Adultos</label>
@@ -198,7 +244,7 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
                 disabled={loadingSubmit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {loadingSubmit ? 'Guardando...' : 'Crear Reserva'}
+                {loadingSubmit ? 'Actualizando...' : 'Actualizar Reserva'}
               </button>
             </div>
           </form>
@@ -208,4 +254,4 @@ const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClo
   );
 };
 
-export default NewReservationModal;
+export default EditReservationModal;

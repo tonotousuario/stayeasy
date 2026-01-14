@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { reservationService } from '../../services/api';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { reservationService, habitacionService } from '../../services/api';
+import type { Reservacion } from '../../types/domain.ts';
+import { FaEdit, FaTrash, FaSignOutAlt } from 'react-icons/fa';
 
-const ReservationCalendar: React.FC = () => {
+interface ReservationCalendarProps {
+  onEditReservation: (reservation: Reservacion) => void;
+  onDeleteReservation: (reservationId: string) => Promise<void>;
+  onCheckOutReservation: (reservationId: string) => Promise<void>;
+  onReservationChange: () => void; // Added prop
+}
+
+const ReservationCalendar = forwardRef<any, ReservationCalendarProps>((props, ref) => {
+  const { onEditReservation, onDeleteReservation, onCheckOutReservation, onReservationChange } = props;
   const [rooms, setRooms] = useState<any[]>([]);
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservacion[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fechas del calendario (fijas para este prototipo o dinámicas)
-  // Usaremos el mes actual basado en la fecha del sistema, o un rango fijo si prefieres.
-  // Para ver las reservas que acabas de crear, asegúrate de crear reservas en ESTAS fechas.
   const today = new Date(); 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -23,19 +30,20 @@ const ReservationCalendar: React.FC = () => {
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [roomsRes, reservationsRes] = await Promise.all([
-        reservationService.getHabitaciones(),
+        habitacionService.getHabitaciones(),
         reservationService.getReservations()
       ]);
 
       if (roomsRes.data) {
-        // Ordenar habitaciones por número
         const sortedRooms = roomsRes.data.sort((a: any, b: any) => a.numero - b.numero);
         setRooms(sortedRooms);
       }
       if (reservationsRes.data) {
         setReservations(reservationsRes.data);
+        if (onReservationChange) onReservationChange();
       }
     } catch (error) {
       console.error("Error fetching calendar data:", error);
@@ -44,14 +52,17 @@ const ReservationCalendar: React.FC = () => {
     }
   };
 
+  // Expose fetchData to parent component via ref
+  useImperativeHandle(ref, () => ({
+    fetchData
+  }));
+
+
   const getReservationForRoomAndDate = (roomId: string, date: Date) => {
     return reservations.find(res => {
-      // Las fechas vienen como string ISO desde el backend
-      // Ajustamos para comparar solo días (sin hora) para simplificar visualización
       const checkIn = new Date(res.fechaCheckIn);
       const checkOut = new Date(res.fechaCheckOut);
       
-      // Normalizamos la fecha actual del bucle a medianoche para comparar
       const currentDate = new Date(date);
       currentDate.setHours(0, 0, 0, 0);
       
@@ -70,6 +81,7 @@ const ReservationCalendar: React.FC = () => {
       case 'CONFIRMADA': return 'bg-blue-500 text-white';
       case 'CHECK_IN': return 'bg-green-500 text-white';
       case 'CANCELADA': return 'bg-red-200 text-red-800';
+      case 'CHECK_OUT': return 'bg-gray-400 text-white';
       default: return 'bg-gray-100';
     }
   };
@@ -111,7 +123,6 @@ const ReservationCalendar: React.FC = () => {
               {dates.map((date, index) => {
                 const reservation = getReservationForRoomAndDate(room.id, date);
                 
-                // Determinamos si es el día de inicio para mostrar el nombre
                 let isStart = false;
                 if (reservation) {
                    const checkIn = new Date(reservation.fechaCheckIn);
@@ -128,13 +139,21 @@ const ReservationCalendar: React.FC = () => {
                     title={reservation ? `Reserva ID: ${reservation.id}\nCheck-in: ${new Date(reservation.fechaCheckIn).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nCheck-out: ${new Date(reservation.fechaCheckOut).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nEstado: ${reservation.estado}` : ''}
                   >
                     {isStart && reservation && (
-                      <div className="absolute left-0 top-0 bottom-0 flex items-center pl-1 whitespace-nowrap overflow-visible z-10 font-semibold drop-shadow-md">
-                         {/* Nota: En la reserva real solo tenemos huespedId. 
-                             Para mostrar el nombre, deberíamos cruzarlo con la lista de huéspedes,
-                             pero por ahora mostraremos "Ocupado" o el ID para simplificar,
-                             o podemos hacer un cruce rápido si ya tenemos la lista de huéspedes cargada.
-                         */}
+                      <div className="absolute left-0 top-0 bottom-0 flex items-center pl-1 whitespace-nowrap overflow-visible z-10 font-semibold drop-shadow-md cursor-pointer group">
                          Reservado
+                         <div className="absolute top-0 right-0 p-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white shadow-lg rounded-bl-lg">
+                            <button onClick={(e) => { e.stopPropagation(); onEditReservation(reservation); }} className="text-blue-500 hover:text-blue-700">
+                                <FaEdit size={12} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onDeleteReservation(reservation.id); }} className="text-red-500 hover:text-red-700">
+                                <FaTrash size={12} />
+                            </button>
+                            {reservation.estado === 'CHECK_IN' && (
+                                <button onClick={(e) => { e.stopPropagation(); onCheckOutReservation(reservation.id); }} className="text-green-500 hover:text-green-700">
+                                    <FaSignOutAlt size={12} />
+                                </button>
+                            )}
+                         </div>
                       </div>
                     )}
                   </div>
@@ -146,6 +165,6 @@ const ReservationCalendar: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default ReservationCalendar;

@@ -46,3 +46,13 @@ object Reservaciones : Table("reservacion") {
 
     override val primaryKey = PrimaryKey(id)
 }
+
+object Users : Table("system_user") {
+    val id = uuid("id_user")
+    val username = varchar("username", 100).uniqueIndex()
+    val hashedPassword = varchar("hashed_password", 255)
+    val role = varchar("role", 50) // ADMIN, RECEPTIONIST
+
+    override val primaryKey = PrimaryKey(id)
+}
+

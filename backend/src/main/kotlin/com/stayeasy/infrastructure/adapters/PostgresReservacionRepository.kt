@@ -6,6 +6,7 @@ import com.stayeasy.domain.ports.ReservacionRepository
 import com.stayeasy.infrastructure.persistence.Huespedes
 import com.stayeasy.infrastructure.persistence.Reservaciones
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq // Explicit import for 'eq'
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
@@ -100,6 +101,28 @@ class PostgresReservacionRepository : ReservacionRepository {
             Reservaciones.update({ Reservaciones.id eq id }) {
                 it[estado] = EstadoReservacion.CANCELADA.name
             }
+        }
+    }
+
+    override fun update(reservacion: Reservacion): Reservacion? {
+        return transaction {
+            val updatedRows = Reservaciones.update({ Reservaciones.id eq reservacion.id }) {
+                it[huespedId] = reservacion.huespedId
+                it[habitacionId] = reservacion.habitacionId
+                it[fechaCheckIn] = reservacion.fechaCheckIn
+                it[fechaCheckOut] = reservacion.fechaCheckOut
+                it[numAdultos] = reservacion.numAdultos
+                it[tarifaTotal] = reservacion.tarifaTotal.toBigDecimal()
+                it[estado] = reservacion.estado.name
+                // fechaCreacion is not updated as it's creation timestamp
+            }
+            if (updatedRows > 0) reservacion else null
+        }
+    }
+
+    override fun delete(id: UUID): Boolean {
+        return transaction {
+            Reservaciones.deleteWhere { Reservaciones.id eq id } > 0
         }
     }
 
