@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/api';
-import type { RegisterRequest, UserRole } from '../../types/domain.ts';
+import type { RegisterRequest } from '../../types/domain.ts';
 
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
